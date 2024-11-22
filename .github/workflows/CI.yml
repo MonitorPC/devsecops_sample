@@ -70,24 +70,33 @@ jobs:
 
 
  dast_scan:
-    name: DAST scan
+    name: DAST Scan
     runs-on: ubuntu-latest
 
     steps:
-     - name: Deploy PyGoat
-       run: |
-        docker pull pygoat/pygoat:latest
-        docker run --rm -d -p 8000:8000 --name pygoat pygoat/pygoat:latest
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-     - name: Run ZAP Scan
-       run: |
-        docker run --rm -ti --net=host owasp/zap2docker-starter:2.11.1 zap-baseline.py -t http://localhost:8000
+    - name: Set up Docker
+      uses: docker/setup-action@v2
+      with:
+        docker-version: 20.10.7
 
-     - name: Upload DAST Artifact
-       uses: actions/upload-artifact@v3
-       with:
-         name: zap-report
-         path: zap-report.html
+    - name: Deploy PyGoat
+      run: |
+        docker network create mynetwork
+        docker run --rm -d --name pygoat --network mynetwork pygoat/pygoat:latest
+        sleep 10 # Wait for PyGoat to start
+
+    - name: Run ZAP Scan
+      run: |
+        docker run --rm --network mynetwork owasp/zap2docker-starter:2.11.1 zap-baseline.py -t http://pygoat:8000 --timeout 300 > zap-report.html
+
+    - name: Upload DAST Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: zap-report
+        path: zap-report.html
      
 
     
