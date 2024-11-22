@@ -67,3 +67,30 @@ jobs:
      with:
        name: docker-scout-findings
        path: scout-report.sarif
+
+
+ dast_scan:
+    name: DAST scan
+    runs-on: ubuntu-latest
+
+    steps:
+     - name: Deploy PyGoat
+       run: |
+        docker pull pygoat/pygoat:latest
+        docker run --rm -d -p 8000:8000 --name pygoat pygoat/pygoat:latest
+
+     - name: Run ZAP Scan
+       run: |
+        docker run --rm -ti --net=host owasp/zap2docker-starter:2.11.1 zap-baseline.py -t http://localhost:8000
+
+     - name: Upload DAST Artifact
+       uses: actions/upload-artifact@v3
+       with:
+         name: zap-report
+         path: zap-report.html
+     
+
+    
+   
+
+
