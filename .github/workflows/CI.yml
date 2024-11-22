@@ -84,19 +84,23 @@ jobs:
 
     - name: Deploy PyGoat
       run: |
-        docker network create mynetwork
-        docker run --rm -d --name pygoat --network mynetwork pygoat/pygoat:latest
+        docker pull pygoat/pygoat:lates
+        docker run --rm -d -p 8000:8000 --name pygoat pygoat/pygoat:latest
         sleep 10 # Wait for PyGoat to start
 
     - name: Run ZAP Scan
-      run: |
-        docker run --rm --network mynetwork owasp/zap2docker-starter:2.11.1 zap-baseline.py -t http://pygoat:8000 --timeout 300 > zap-report.html
+      uses: zaproxy/action-baseline@v0.14.0
+      with:
+       target: 'localhost:8000'
+       cmd: '-r zap_scan.html'
+       
 
     - name: Upload DAST Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: zap-report
-        path: zap-report.html
+        name: zap_scan
+        path: zap_scan.html
+        
      
 
     
