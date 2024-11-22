@@ -92,7 +92,7 @@ jobs:
       uses: zaproxy/action-baseline@v0.14.0
       with:
        target: 'http://localhost:8000'
-       cmd: '-r zap_scan.html'
+       cmd_options: '-r zap_scan.html'
        
 
     - name: Upload DAST Artifact
